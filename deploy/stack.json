@@ -1,0 +1,233 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Shipping cart simulater stack",
+    "Parameters": {
+      "VpcId": {
+          "Description": "Target vpc for this stack",
+          "Type": "AWS::EC2::VPC::Id",
+          "Default": ""
+      },
+      "SubnetId": {
+          "Description": "Target subnet(s) for this stack",
+          "Type": "AWS::EC2::Subnet::Id",
+          "Default": ""
+      },
+      "KeyPair": {
+          "Description": "Key pair for this stack",
+          "Type": "String",
+          "Default": ""
+      },
+      "InstanceCount": {
+          "Description": "Desired capacity for the Auto Scaling Group",
+          "Type": "Number",
+          "Default": ""
+      }
+    },
+    "Resources": {
+      "AutoScalingGroup" : {
+          "Type" : "AWS::AutoScaling::AutoScalingGroup",
+          "Properties" : {
+              "VPCZoneIdentifier": [ { "Ref": "SubnetId" }],
+              "DesiredCapacity": { "Ref": "InstanceCount" },
+              "LaunchConfigurationName" : { "Ref": "AutoScalingLaunchConfiguration" },
+              "MaxSize" : 2,
+              "MinSize" : 0,
+              "Tags" : [ {"Key" : "Name",
+                          "Value" : {"Fn::Join" : ["",[ { "Ref": "AWS::StackName" }, "-instance" ] ]},
+                          "PropagateAtLaunch" : "True"}
+                      ]
+          }
+      },
+      "AutoScalingLaunchConfiguration": {
+          "Type" : "AWS::AutoScaling::LaunchConfiguration",
+          "Properties" : {
+              "IamInstanceProfile" : { "Ref": "EC2InstanceProfile" },
+              "ImageId" : "ami-5253c32d",
+              "InstanceType" : "t2.micro",
+              "KeyName" : { "Ref": "KeyPair" },
+              "SecurityGroups" : [ { "Ref": "EC2InstanceSecurityGroup" } ],
+              "UserData" : {
+                  "Fn::Base64":
+                      {   "Fn::Join": [
+                              "",
+                              [
+                                  "#!/bin/bash -ex\n",
+                                  "echo ECS_CLUSTER=", { "Ref": "EcsCluster" }, " >> /etc/ecs/ecs.config\n"
+                              ]
+
+                          ]
+                      }
+              }
+          }
+      },
+      "EC2InstanceProfile": {
+         "Type": "AWS::IAM::InstanceProfile",
+         "Properties": {
+            "Path": "/",
+            "Roles": [ { "Ref": "EC2InstanceRole" } ]
+         }
+      },
+      "EC2InstanceRole": {
+         "Type": "AWS::IAM::Role",
+         "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": { "Service": ["ec2.amazonaws.com"] },
+                  "Action": [ "sts:AssumeRole"]
+                }
+              ]
+
+            },
+            "Path": "",
+            "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
+         }
+      },
+      "EC2InstanceSecurityGroup" : {
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Properties" : {
+          "GroupDescription" : "EC2 instance security group",
+          "SecurityGroupIngress" : [
+            {
+              "IpProtocol" : "tcp",
+              "FromPort" : 8000,
+              "ToPort" : 8000,
+              "SourceSecurityGroupId" : { "Ref": "ElbSecurityGroup" }
+            },
+            {
+              "IpProtocol" : "tcp",
+              "FromPort" : 22,
+              "ToPort" : 22,
+              "CidrIp" : "0.0.0.0/0"
+            }
+          ],
+          "VpcId" : { "Ref": "VpcId" },
+          "Tags" :  [
+            { "Key": "Name", "Value":  {"Fn::Join" : ["",[ { "Ref": "AWS::StackName" }, "-instance-sg" ] ]} }
+          ]
+        }
+      },
+      "ElasticLoadBalancer": {
+         "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+         "Properties": {
+            "CrossZone": "false",
+            "SecurityGroups" : [ { "Ref": "ElbSecurityGroup" } ],
+            "Listeners" : [
+              {
+                "LoadBalancerPort": 80,
+                "InstancePort": 8000,
+                "Protocol": "http"
+              }
+            ],
+            "HealthCheck": {
+              "Target": "HTTP:8000/todos",
+              "HealthyThreshold": 2,
+              "UnhealthyThreshold": 10,
+              "Interval": 30,
+              "Timeout": 5
+            },
+            "Subnets": [ { "Ref": "SubnetId" }],
+            "Tags": [
+                  {
+                    "Key": "Name",
+                    "Value": {"Fn::Join" : ["",[ { "Ref": "AWS::StackName" }, "-elb" ] ]}
+                  }
+            ]
+         }
+      },
+      "ElbSecurityGroup" : {
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Properties" : {
+          "GroupDescription" : "Elb security group",
+          "SecurityGroupIngress" : [
+            {
+              "IpProtocol" : "tcp",
+              "FromPort" : 80,
+              "ToPort" : 80,
+              "CidrIp" : "0.0.0.0/0"
+            }
+          ],
+          "VpcId" : { "Ref": "VpcId" },
+          "Tags" :  [
+            { "Key": "Name", "Value":  {"Fn::Join" : ["",[ { "Ref": "AWS::StackName" }, "-elb-sg" ] ]} }
+          ]
+        }
+      },
+      "EcsCluster": {
+        "Type": "AWS::ECS::CLUSTER"
+      },
+      "CartTaskDefinition": {
+        "Type": "AWS::ECS::TaskDefinition",
+        "Properties": {
+          "ContainerDefinitions": [
+            {
+              "Name": "Cart",
+              "Image": "thishandp7/cart",
+              "Memory": 450,
+              "Essential": "true",
+              "Links": [
+                "CartServer"
+              ],
+              "PortMappings": [
+                {
+                  "ContainerPort": 8080,
+                  "HostPort": 8000
+                }
+              ]
+            },
+            {
+              "Name": "CartServer",
+              "Image": "thishandp7/cart-server",
+              "Memory": 300,
+              "Essential": "true"
+            }
+          ]
+        }
+      },
+      "CartService": {
+        "Type": "AWS::ECS::Service",
+        "Properties": {
+          "Cluster": { "Ref": "EcsCluster" },
+          "TaskDefinition": { "Ref": "CartTaskDefinition" },
+          "LoadBalancer": [
+            {
+              "ContainerName": "Cart",
+              "ContainerPort": "8080",
+              "LoadBalancerName": { "Ref": "ElasticLoadBalancer" }
+            }
+          ],
+          "Role": { "Ref": "EcsServiceRole" },
+          "DesiredCount": 1
+        }
+      },
+      "EcsServiceRole": {
+         "Type": "AWS::IAM::Role",
+         "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": [ "ecs.amazonaws.com" ]
+                  },
+                  "Action": [ "sts:AssumeRole"]
+                }
+              ]
+            },
+            "Path": "/",
+            "ManagedPolicyArns": [
+              "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"
+             ]
+         }
+      }
+    },
+    "Outputs": {
+      "ElbDNSName" : {
+        "Value" : { "Fn::GetAtt" : [ "ElasticLoadBalancer", "PublicDNS" ]},
+        "Description": "Public DNS name for the elb"
+      }
+    }
+}
