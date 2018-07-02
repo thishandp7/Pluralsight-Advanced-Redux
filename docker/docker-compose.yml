@@ -1,0 +1,28 @@
+version: "3.5"
+
+services:
+  cart:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        APP_LOCATION: /redux-saga-cart/
+    networks:
+      - server-cart
+    ports:
+      - 8082:8080
+
+  server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        APP_LOCATION: /redux-saga-shopping-cart-server/
+    ports:
+      - 8081:8081
+    networks:
+      - server-cart
+
+
+networks:
+  server-cart:
