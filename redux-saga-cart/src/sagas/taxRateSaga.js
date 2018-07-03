@@ -6,10 +6,12 @@ import {
   setTaxRate
 } from '.././actions';
 
+const HOST = process.env.HOST || localhost;
+
 export function* taxRateSaga(){
   const { user } = yield take(SET_CURRENT_USER);
   const { country } = user;
-  const response = yield fetch(`http://localhost:8081/tax/${user.country}`);
+  const response = yield fetch(`http://${HOST}:8081/tax/${user.country}`);
   const {rate} = yield response.json();
   yield put(setTaxRate(rate));
 }

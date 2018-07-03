@@ -1,5 +1,6 @@
 import { call, put, take, select} from 'redux-saga/effects';
 import fetch from 'isomorphic-fetch';
+const HOST = process.env.HOST || localhost;
 
 import {
   ERROR_CHECKOUT_PHASE,
@@ -17,19 +18,19 @@ import {
 
 export function* validateCart(user){
   const uid = user.get('id');
-  const responce = yield fetch(`http://localhost:8081/cart/validate/${uid}`);
+  const responce = yield fetch(`http://${HOST}:8081/cart/validate/${uid}`);
   const { validated } = yield responce.json();
   return validated;
 }
 
 export function* validateCard(user){
-  const response = yield call(fetch, `http://localhost:8081/card/validate/${user.get('id')}`);
+  const response = yield call(fetch, `http://${HOST}:8081/card/validate/${user.get('id')}`);
   const { validated } = yield response.json();
   return validated;
 }
 
 export function* executePurchase(user){
-  const response = yield fetch(`http://localhost:8081/card/charge/${user.get('id')}`);
+  const response = yield fetch(`http://${HOST}:8081/card/charge/${user.get('id')}`);
   const {success} = yield response.json();
   console.log(success);
   return success;

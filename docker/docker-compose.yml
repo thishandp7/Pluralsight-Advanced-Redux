@@ -7,6 +7,7 @@ services:
       dockerfile: docker/Dockerfile
       args:
         APP_LOCATION: /redux-saga-cart/
+        PORT: 8080
     networks:
       - server-cart
     ports:
@@ -18,6 +19,7 @@ services:
       dockerfile: docker/Dockerfile
       args:
         APP_LOCATION: /redux-saga-shopping-cart-server/
+        PORT: 8081
     ports:
       - 8081:8081
     networks:

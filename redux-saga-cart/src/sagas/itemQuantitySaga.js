@@ -13,10 +13,12 @@ import {
 
 import { currentUserSelector } from '.././selectors';
 
+const HOST = process.env.HOST || localhost;
+
 export function* handleIncreaseItemQuantity({id}){
   yield put(setItemQuantityFetchStatus(FETCHING));
   const user = yield select(currentUserSelector);
-  const responce = yield fetch(`http://localhost:8081/cart/add/${user.get('id')}/${id}`);
+  const responce = yield fetch(`http://${HOST}:8081/cart/add/${user.get('id')}/${id}`);
 
   if(responce.status !== 200){
     yield put(decreaseItemQuantity(id, true));
@@ -31,7 +33,7 @@ export function* handleDecreaseItemQuantity({id, local}){
   }
   yield put(setItemQuantityFetchStatus(FETCHING));
   const user = yield select(currentUserSelector);
-  const responce = yield fetch(`http://localhost:8081/cart/remove/${user.get('id')}/${id}`);
+  const responce = yield fetch(`http://${HOST}:8081/cart/remove/${user.get('id')}/${id}`);
   if(responce.status !== 200){
     console.warn('received non-200 status:: ', responce);
   }

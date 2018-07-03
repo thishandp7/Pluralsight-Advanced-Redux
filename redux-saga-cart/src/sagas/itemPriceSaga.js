@@ -1,6 +1,6 @@
 import { take, put, fork, all} from 'redux-saga/effects';
 import fetch from 'isomorphic-fetch';
-
+const HOST = process.env.HOST || localhost;
 import {
   SET_CART_ITEMS,
   SET_CURRENT_USER,
@@ -8,7 +8,7 @@ import {
 } from '.././actions';
 
 export function* fetchItemPrice(id, country){
-  const response = yield fetch(`http://localhost:8081/prices/${country}/${id}`);
+  const response = yield fetch(`http://${HOST}:8081/prices/${country}/${id}`);
   const data = yield response.json();
   yield put(setItemPrice(id,data[0].price));
 }

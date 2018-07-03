@@ -15,6 +15,8 @@ import {
   cartItemsSelector
 } from '.././selectors';
 
+const HOST = process.env.HOST || localhost;
+
 export function* shipping(){
   yield put(setShippingFetchStatus(FETCHING));
   const items = yield select(cartItemsSelector);
@@ -26,7 +28,7 @@ export function* shipping(){
     return string;
   }, "").replace(/,\s*$/, '');
 
-  const response = yield fetch(`http://localhost:8081/shipping/${itemRequestString}`);
+  const response = yield fetch(`http://${HOST}:8081/shipping/${itemRequestString}`);
   const { total } = yield response.json();
 
   yield put(setShippingCost(total));

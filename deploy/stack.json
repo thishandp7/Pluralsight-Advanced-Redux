@@ -19,8 +19,7 @@
       },
       "InstanceCount": {
           "Description": "Desired capacity for the Auto Scaling Group",
-          "Type": "Number",
-          "Default": ""
+          "Type": "Number"
       }
     },
     "Resources": {
@@ -81,7 +80,7 @@
               ]
 
             },
-            "Path": "",
+            "Path": "/",
             "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
          }
       },
@@ -122,7 +121,7 @@
               }
             ],
             "HealthCheck": {
-              "Target": "HTTP:8000/todos",
+              "Target": "HTTP:8000/",
               "HealthyThreshold": 2,
               "UnhealthyThreshold": 10,
               "Interval": 30,
@@ -156,7 +155,7 @@
         }
       },
       "EcsCluster": {
-        "Type": "AWS::ECS::CLUSTER"
+        "Type": "AWS::ECS::Cluster"
       },
       "CartTaskDefinition": {
         "Type": "AWS::ECS::TaskDefinition",
@@ -164,12 +163,8 @@
           "ContainerDefinitions": [
             {
               "Name": "Cart",
-              "Image": "thishandp7/cart",
-              "Memory": 450,
-              "Essential": "true",
-              "Links": [
-                "CartServer"
-              ],
+              "Image": "thishandp7/cs-cart",
+              "Memory": 400,
               "PortMappings": [
                 {
                   "ContainerPort": 8080,
@@ -179,9 +174,8 @@
             },
             {
               "Name": "CartServer",
-              "Image": "thishandp7/cart-server",
-              "Memory": 300,
-              "Essential": "true"
+              "Image": "thishandp7/cs-server",
+              "Memory": 450
             }
           ]
         }
@@ -191,7 +185,7 @@
         "Properties": {
           "Cluster": { "Ref": "EcsCluster" },
           "TaskDefinition": { "Ref": "CartTaskDefinition" },
-          "LoadBalancer": [
+          "LoadBalancers": [
             {
               "ContainerName": "Cart",
               "ContainerPort": "8080",
@@ -226,7 +220,7 @@
     },
     "Outputs": {
       "ElbDNSName" : {
-        "Value" : { "Fn::GetAtt" : [ "ElasticLoadBalancer", "PublicDNS" ]},
+        "Value" : { "Fn::GetAtt" : [ "ElasticLoadBalancer", "DNSName" ]},
         "Description": "Public DNS name for the elb"
       }
     }
