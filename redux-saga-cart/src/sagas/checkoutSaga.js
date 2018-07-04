@@ -1,7 +1,7 @@
 import { call, put, take, select} from 'redux-saga/effects';
 import fetch from 'isomorphic-fetch';
-const HOST = process.env.HOST || localhost;
-
+const HOST = process.env.HOST;
+console.info("Server host: ", HOST);
 import {
   ERROR_CHECKOUT_PHASE,
   QUANTITY_VERIFICATION_CHECKOUT_PHASE,

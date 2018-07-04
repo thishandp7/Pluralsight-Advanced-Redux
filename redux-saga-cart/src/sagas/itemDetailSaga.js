@@ -1,6 +1,6 @@
 import { take, put, fork } from 'redux-saga/effects';
 import fetch from 'isomorphic-fetch';
-const HOST = process.env.HOST || localhost;
+const HOST = process.env.HOST;
 import {
   SET_CART_ITEMS,
   setItemDetails

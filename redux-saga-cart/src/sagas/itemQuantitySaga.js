@@ -13,7 +13,7 @@ import {
 
 import { currentUserSelector } from '.././selectors';
 
-const HOST = process.env.HOST || localhost;
+const HOST = process.env.HOST;
 
 export function* handleIncreaseItemQuantity({id}){
   yield put(setItemQuantityFetchStatus(FETCHING));

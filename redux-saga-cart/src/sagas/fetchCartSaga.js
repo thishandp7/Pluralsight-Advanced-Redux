@@ -6,7 +6,7 @@ import{
   setCartItems
 } from '.././actions';
 
-const HOST = process.env.HOST || localhost;
+const HOST = process.env.HOST;
 
 export function* fetchCartSaga(){
   const {user} = yield take(SET_CURRENT_USER);

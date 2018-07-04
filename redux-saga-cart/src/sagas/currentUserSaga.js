@@ -4,7 +4,7 @@ import {
   setCurrentUser,
   GET_CURRENT_USER_INFO
 } from '.././actions'
-const HOST = process.env.HOST || localhost;
+const HOST = process.env.HOST;
 
 export function* currentUserSaga(){
   const { id } = yield take(GET_CURRENT_USER_INFO);

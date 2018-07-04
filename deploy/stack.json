@@ -170,6 +170,12 @@
                   "ContainerPort": 8080,
                   "HostPort": 8000
                 }
+              ],
+              "Environment":[
+                {
+                  "Name": "HOST",
+                  "Value": "0.0.0.0"
+                }
               ]
             },
             {

@@ -6,7 +6,7 @@ import {
   setTaxRate
 } from '.././actions';
 
-const HOST = process.env.HOST || localhost;
+const HOST = process.env.HOST;
 
 export function* taxRateSaga(){
   const { user } = yield take(SET_CURRENT_USER);

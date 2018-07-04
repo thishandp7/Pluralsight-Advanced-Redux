@@ -10,7 +10,7 @@ SERVER := server
 
 DOCKER_REGISTRY := docker.io
 
-.PHONY: build tag publish clean
+.PHONY: build tag publish clean tet
 
 build:
 	${INFO} "Pulling the latest image..."
@@ -39,6 +39,7 @@ clean:
 	@ docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) kill
 	@ docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) rm -f -v
 	${INFO} "Cleaning old build artifacts..."
+
 
 #colors
 LIGHT_YELLOW := "\e[93m"

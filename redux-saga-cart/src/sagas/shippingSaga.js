@@ -15,7 +15,7 @@ import {
   cartItemsSelector
 } from '.././selectors';
 
-const HOST = process.env.HOST || localhost;
+const HOST = process.env.HOST;
 
 export function* shipping(){
   yield put(setShippingFetchStatus(FETCHING));
